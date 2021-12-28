@@ -58,4 +58,10 @@ one way hash using URL as salt - store in DB
 prevent someone from traversing all URLs, in case someone posted something sensitive by accident 
 
 Hasher interface doesn't lock you down to the pkg definitions
-note on 3rd party short uuid pkg - bad to implement cryptography yourself  
+note on 3rd party short uuid pkg - bad to implement cryptography yourself
+
+## TODO: 
+
+* HTTP Tests
+* README
+* Check CI works  
