@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"net"
 	"net/http"
 	"strings"
 
@@ -56,8 +57,14 @@ func (a API) ShortenHandler(w http.ResponseWriter, r *http.Request) {
 
 	respBody := shortenResponse{
 		shortenPayload: payload,
-		ShortURL:       r.URL.Host + "/" + hash,
 		ShortHash:      hash,
+	}
+
+	if r.URL.Host != "" {
+		respBody.ShortURL = r.URL.Host + "/" + hash
+	} else {
+		srvAddr := r.Context().Value(http.LocalAddrContextKey).(net.Addr)
+		respBody.ShortURL = srvAddr.String() + "/" + hash
 	}
 
 	respBytes, err := json.Marshal(respBody)
@@ -69,17 +76,23 @@ func (a API) ShortenHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(respBytes)
 }
 
+//
 func (a API) RedirectHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
 	}
 
-	hashID := strings.TrimPrefix(r.URL.Path, "/")
+	urlComponents := strings.Split(r.URL.Path, "/")
+	if len(urlComponents) == 0 {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	hashID := urlComponents[len(urlComponents)-1]
 
 	longURL, err := a.storage.Get(hashID)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 

@@ -1,16 +1,17 @@
 package stub
 
+import "github.com/jemgunay/url-shortener/hash"
+
+// Stub satisfies Hasher and is used to stub out the hash Generator.
 type Stub struct {
-	EncodedVal string
-	EncodeErr  error
-	DecodedVal string
-	DecodeErr  error
+	Val string
+	Err error
 }
 
-func (s Stub) Encode(_ string) (string, error) {
-	return s.EncodedVal, s.EncodeErr
-}
+// Ensure Stub satisfies Hasher.
+var _ hash.Hasher = Stub{}
 
-func (s Stub) Decode(_ string) (string, error) {
-	return s.DecodedVal, s.DecodeErr
+// Hash returns the Stub's Val and Err fields.
+func (s Stub) Hash(_ string) (string, error) {
+	return s.Val, s.Err
 }
