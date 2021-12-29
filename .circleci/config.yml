@@ -4,10 +4,11 @@ jobs:
   build:
     docker:
       - image: circleci/golang:1.14
-    working_directory: /go/src/github.com/jemgunay/url-shortener/cmd/server
+    working_directory: /go/src/github.com/jemgunay/url-shortener
     steps:
       - checkout
-      - run: go build -race
+      - run: cd cmd/server && go build -race
+      - run: cd cmd/cli && go build -race
 
   verify:
     docker:
@@ -17,7 +18,6 @@ jobs:
       - checkout
       - run: go get -u golang.org/x/lint/golint
       - run: golint $(go list ./... | grep -v /vendor/)
-      - run: go vet $(go list ./... | grep -v /vendor/)
 
   test:
     docker:
