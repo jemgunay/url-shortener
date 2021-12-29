@@ -21,7 +21,7 @@ $ go test -race ./...
 
 Shorten a URL:
 ```bash
-$ curl -i -XPOST "http://localhost:8080/api/v1/shorten" -d '{"original_url": "https://jemgunay.co.uk"}
+$ curl -i -XPOST "http://localhost:8080/api/v1/shorten" -d '{"original_url": "https://jemgunay.co.uk"}'
 
 HTTP/1.1 200 OK
 Date: Tue, 28 Dec 2021 21:25:48 GMT
@@ -57,7 +57,7 @@ one way hash using URL as salt - store in DB
 
 prevent someone from traversing all URLs, in case someone posted something sensitive by accident 
 
-Hasher interface doesn't lock you down to the pkg definitions
+Hasher and Storage interfaces doesn't lock you down to the pkg definitions
 note on 3rd party short uuid pkg - bad to implement cryptography yourself
 
 ## TODO: 
@@ -65,3 +65,4 @@ note on 3rd party short uuid pkg - bad to implement cryptography yourself
 * HTTP Tests
 * README
 * Check CI works  
+* CLI tool
