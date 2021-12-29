@@ -1,5 +1,7 @@
 # url-shortener
 
+[![CircleCI](https://circleci.com/gh/jemgunay/url-shortener/tree/master.svg?style=svg)](https://circleci.com/gh/jemgunay/url-shortener/tree/master)
+
 A URL shortener service.
 
 ## Usage
@@ -35,34 +37,19 @@ Entering the `short_url` in a browser will result in a redirect to the originall
 
 ### CLI Tool
 
-TODO
+Shorten:
+```bash
+$ go run cmd/cli/cli.go -addr="http://localhost:8080" -operation="shorten" -original_url="https://jemgunay.co.uk"
+2021/12/29 20:42:21 {"short_url":"[::1]:8080/yyE7RYV14457E","short_hash":"yyE7RYV14457E","original_url":"https://jemgunay.co.uk"}
+```
+Lookup:
+```bash
+$ go run cmd/cli/cli.go -addr="http://localhost:8080" -operation="lookup" -hash="yyE7RYV14457E"
+2021/12/29 20:44:00 yyE7RYV14457E redirects to https://jemgunay.co.uk
+```
 
-## Design
+## Design Notes
 
-URL Shortener
-Write an API for a URL shortener that satisfies the following behaviour:
-Accepts a URL to be shortened.
-Generates a short URL for the original URL.
-Accepts a short URL and redirects the caller to the original URL.
+The `github.com/speps/go-hashids/v2` package was chosen for generating hashes as it is a standardised and peer-reviewed algorithm/implementation; it is generally bad practise to implement cryptography yourself if you're not a cryptography specialist. However, these implementation specifics were abstracted behind a `Hasher` interface so that other hashing implementations can be plugged in.
 
-Bonus points
-Comes with a CLI that can be used to call your service.
-
-Things we'd like to see
-Sound design approach that's not overly complicated or over-engineered.
-Code that's easy to read and not too "clever".
-Sensible tests in place
-
-one way hash using URL as salt - store in DB
-
-prevent someone from traversing all URLs, in case someone posted something sensitive by accident 
-
-Hasher and Storage interfaces doesn't lock you down to the pkg definitions
-note on 3rd party short uuid pkg - bad to implement cryptography yourself
-
-## TODO: 
-
-* HTTP Tests
-* README
-* Check CI works  
-* CLI tool
+Similarly, a `Storage` interface fronts the map-driven K/V store so that other storage (such as persistent storage, i.e. SQL/flat file) mediums can be implemented and easily swapped out. 

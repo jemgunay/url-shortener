@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"log"
 	"net"
 	"net/http"
 	"strings"
@@ -47,6 +48,7 @@ func (a API) ShortenHandler(w http.ResponseWriter, r *http.Request) {
 
 	payload := shortenPayload{}
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		log.Printf("failed to JSON unmarshal request payload: %s", err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -54,12 +56,14 @@ func (a API) ShortenHandler(w http.ResponseWriter, r *http.Request) {
 	// generate hash for the given URL
 	hashID, err := a.hasher.Hash(payload.OriginalURL)
 	if err != nil {
+		log.Printf("failed to hash original URL: %s", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	// store the new hash against the URL
 	if err := a.storage.Set(hashID, payload.OriginalURL); err != nil {
+		log.Printf("failed to store URL: %s", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -79,6 +83,7 @@ func (a API) ShortenHandler(w http.ResponseWriter, r *http.Request) {
 
 	respBytes, err := json.Marshal(respBody)
 	if err != nil {
+		log.Printf("failed to JDON marshal response payload: %s", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -97,17 +102,24 @@ func (a API) RedirectHandler(w http.ResponseWriter, r *http.Request) {
 	// extract the hash ID from the end of the URL - this adds support for URLs such as "/{hashID}" and "/api/{hashID}"
 	urlComponents := strings.Split(r.URL.Path, "/")
 	if len(urlComponents) == 0 {
+		log.Print("expected at least one URL component")
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	hashID := urlComponents[len(urlComponents)-1]
 
 	// lookup original URL associated with provided hash ID
-	longURL, err := a.storage.Get(hashID)
+	originalURL, err := a.storage.Get(hashID)
 	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
+		if err == store.ErrKeyNotFound {
+			log.Printf("URL not found for hash %s: %s", hashID, err)
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		log.Printf("failed perform store URL lookup: %s", err)
 		return
 	}
 
-	http.Redirect(w, r, longURL, http.StatusMovedPermanently)
+	// perform HTTP redirect to original URL
+	http.Redirect(w, r, originalURL, http.StatusMovedPermanently)
 }
