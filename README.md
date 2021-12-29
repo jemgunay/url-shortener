@@ -1,6 +1,5 @@
-# url-shortener
-
 [![CircleCI](https://circleci.com/gh/jemgunay/url-shortener/tree/master.svg?style=svg)](https://circleci.com/gh/jemgunay/url-shortener/tree/master)
+# url-shortener
 
 A URL shortener service.
 
